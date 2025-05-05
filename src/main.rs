@@ -1,13 +1,64 @@
+use std::env;
+use std::process;
 use tokio_postgres::{Error, NoTls};
 use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    // TODO: Environment variables for database connection
+    let key_user = "DB_USER";
+    let user = match env::var(key_user) {
+        Ok(val) => val,
+        Err(err) => {
+            println!("{}: {}", err, key_user);
+            process::exit(1);
+        }
+    };
+
+    let key_password = "DB_PASSWORD";
+    let password = match env::var(key_password) {
+        Ok(val) => val,
+        Err(err) => {
+            println!("{}: {}", err, key_password);
+            process::exit(1);
+        }
+    };
+
+    let key_host = "DB_HOST";
+    let host = match env::var(key_host) {
+        Ok(val) => val,
+        Err(err) => {
+            println!("{}: {}", err, key_host);
+            process::exit(1);
+        }
+    };
+
+    let key_port = "DB_PORT";
+    let port = match env::var(key_port) {
+        Ok(val) => val,
+        Err(err) => {
+            println!("{}: {}", err, key_port);
+            process::exit(1);
+        }
+    };
+
+    let key_database = "DB_DATABASE";
+    let database = match env::var(key_database) {
+        Ok(val) => val,
+        Err(err) => {
+            println!("{}: {}", err, key_database);
+            process::exit(1);
+        }
+    };
 
     // Connect to the database.
-    let (client, connection) =
-        tokio_postgres::connect("host=localhost user=postgres password=pass", NoTls).await?;
+    let (client, connection) = tokio_postgres::connect(
+        &format!(
+            "postgres://{}:{}@{}:{}/{}",
+            user, password, host, port, database
+        ),
+        NoTls,
+    )
+    .await?;
 
     // The connection object performs the actual communication with the database,
     // so spawn it off to run on its own.
